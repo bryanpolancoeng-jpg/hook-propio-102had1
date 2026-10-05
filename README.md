@@ -1,16 +1,40 @@
-# React + Vite
+# hook-propio-102had1
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Demostración de un custom hook propio, useTemporizador, usado en dos componentes independientes (Estudio y Descanso).
 
-Currently, two official plugins are available:
+## Qué hace la demostración
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+La aplicación muestra dos temporizadores a la vez: uno de estudio (25 min) y uno de descanso (5 min). Cada uno se inicia, pausa y reinicia por separado, y accionar uno no afecta al otro. La documentación del hook está en [src/hooks/README.md](src/hooks/README.md).
 
-## React Compiler
+## Cómo ejecutarla
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the Oxlint configuration
+Luego abrir `http://localhost:5173/`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Estructura
+
+```
+src/hooks/useTemporizador.js   # el hook
+src/hooks/README.md            # su documentación
+src/components/Estudio.jsx     # primer componente que lo usa
+src/components/Descanso.jsx    # segundo componente que lo usa
+src/App.jsx                    # muestra ambos a la vez
+```
+
+## Análisis escrito
+
+**1. ¿Qué lógica encapsula el hook y por qué es un hook y no una función utilitaria?**
+
+El hook encapsula una cuenta regresiva: guarda los segundos restantes y si el temporizador está activo, programa un intervalo que resta un segundo cada vez y lo limpia al pausar o desmontar el componente. Es un hook porque necesita estado propio (useState) y efectos (useEffect) ligados al ciclo de vida del componente. Una función como las de formato.js recibe un valor y devuelve otro, sin memoria entre llamadas ni re-renderizados; el temporizador, en cambio, cambia con el tiempo y debe provocar que el componente se vuelva a dibujar.
+
+**2. ¿Por qué los dos componentes no comparten el estado aunque usen el mismo hook?**
+
+Porque cada llamada al hook crea su propio estado dentro del componente que lo llama. El hook es una receta, no un almacén compartido: Estudio y Descanso reciben cada uno su copia de segundos y activo. En las capturas se ve que, al iniciar el temporizador de estudio, su cuenta avanza mientras el de descanso se queda en 05:00.
+
+**3. Versionado semántico si se publicara como paquete 1.0.0**
+
+Obligaría a publicar la **2.0.0** un cambio que rompa a quienes ya lo usan, por ejemplo renombrar iniciar a comenzar, quitar pausar o cambiar el objeto devuelto por un arreglo. Bastaría la 1.1.0 un cambio compatible que agrega algo, por ejemplo devolver además una función agregarSegundos, o un segundo parámetro opcional, sin alterar lo que ya existía.
